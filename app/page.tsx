@@ -2,7 +2,12 @@ import { getAllAudits } from "@/lib/data";
 import AuditTable from "@/components/AuditTable";
 
 export default function Home() {
-  const audits = getAllAudits();
+  let audits;
+  try {
+    audits = getAllAudits();
+  } catch {
+    audits = [];
+  }
   return (
     <div>
       <h2 className="mb-4 text-xl font-medium text-gray-800">Audit Table</h2>

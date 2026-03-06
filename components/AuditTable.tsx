@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import type { AuditRecord } from "@/lib/types";
 import AddEditForm from "./AddEditForm";
+import TrashIcon from "./TrashIcon";
 
 const PAGE_SIZE = 25;
 
@@ -46,9 +47,18 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
     setAudits(data);
   };
 
-  const categories = useMemo(() => [...new Set(audits.map((a) => a.category).filter(Boolean))].sort(), [audits]);
-  const retailers = useMemo(() => [...new Set(audits.map((a) => a.retailer).filter(Boolean))].sort(), [audits]);
-  const issueTypes = useMemo(() => [...new Set(audits.map((a) => a.issueType).filter(Boolean))].sort(), [audits]);
+  const categories = useMemo(
+    () => Array.from(new Set(audits.map((a) => a.category).filter(Boolean))).sort(),
+    [audits]
+  );
+  const retailers = useMemo(
+    () => Array.from(new Set(audits.map((a) => a.retailer).filter(Boolean))).sort(),
+    [audits]
+  );
+  const issueTypes = useMemo(
+    () => Array.from(new Set(audits.map((a) => a.issueType).filter(Boolean))).sort(),
+    [audits]
+  );
 
   const filtered = useMemo(() => {
     let list = [...audits];
@@ -98,7 +108,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
             setEditing(null);
             setShowForm(true);
           }}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded bg-storesight-purple px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
           Add Entry
         </button>
@@ -222,7 +232,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
                       href={a.pogLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-storesight-purple hover:underline"
                     >
                       {a.pogLink.length > 40 ? a.pogLink.slice(0, 40) + "…" : a.pogLink}
                     </a>
@@ -254,15 +264,16 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
                         setEditing(a);
                         setShowForm(true);
                       }}
-                      className="text-blue-600 hover:underline text-sm mr-2"
+                      className="text-storesight-purple hover:underline text-sm mr-2"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(a.id)}
-                      className="text-red-600 hover:underline text-sm"
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                      title="Delete"
                     >
-                      Delete
+                      <TrashIcon className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>

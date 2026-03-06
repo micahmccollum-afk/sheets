@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuditById, updateAudit, deleteAudit } from "@/lib/data";
+import { updateAudit, deleteAudit } from "@/lib/data";
 
 const EDITABLE_FIELDS = ["category", "retailer", "pogLink", "issueType", "auditor", "notes"] as const;
 

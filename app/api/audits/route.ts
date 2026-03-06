@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getAllAudits, createAudit } from "@/lib/data";
-import { AuditRecord } from "@/lib/types";
 
 export async function GET() {
   const audits = getAllAudits();
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(record);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 }

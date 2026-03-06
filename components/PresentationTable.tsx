@@ -11,11 +11,11 @@ export default function PresentationTable({ audits }: { audits: AuditRecord[] })
   const [page, setPage] = useState(1);
 
   const categories = useMemo(
-    () => [...new Set(audits.map((a) => a.category).filter(Boolean))].sort(),
+    () => Array.from(new Set(audits.map((a) => a.category).filter(Boolean))).sort(),
     [audits]
   );
   const issueTypes = useMemo(
-    () => [...new Set(audits.map((a) => a.issueType).filter(Boolean))].sort(),
+    () => Array.from(new Set(audits.map((a) => a.issueType).filter(Boolean))).sort(),
     [audits]
   );
 
@@ -105,7 +105,7 @@ export default function PresentationTable({ audits }: { audits: AuditRecord[] })
                     href={a.pogLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
+                    className="text-storesight-purple hover:underline"
                   >
                     View POG
                   </a>

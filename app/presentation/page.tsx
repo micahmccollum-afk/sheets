@@ -2,16 +2,20 @@ import { getAllAudits } from "@/lib/data";
 import SummaryCards from "@/components/SummaryCards";
 import IssueCharts from "@/components/IssueCharts";
 import PresentationTable from "@/components/PresentationTable";
+import ExportButton from "@/components/ExportButton";
 
 export default function PresentationPage() {
   const audits = getAllAudits();
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="mb-2 text-2xl font-semibold text-gray-900">POG Audit Findings</h2>
-        <p className="text-sm text-gray-600">
-          Summary of planogram capture issues across product categories
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900">POG Audit Findings</h2>
+          <p className="text-sm text-gray-600">
+            Summary of planogram capture issues across product categories
+          </p>
+        </div>
+        <ExportButton audits={audits} />
       </div>
       <SummaryCards audits={audits} />
       <IssueCharts audits={audits} />

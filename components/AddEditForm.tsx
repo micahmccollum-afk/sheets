@@ -34,8 +34,8 @@ export default function AddEditForm({
       setCategory(audit.category);
       setRetailer(audit.retailer);
       setPogLink(audit.pogLink);
-      setIssueType(ISSUE_TYPES.includes(audit.issueType as any) ? audit.issueType : "Other");
-      setOtherIssueType(ISSUE_TYPES.includes(audit.issueType as any) ? "" : audit.issueType);
+      setIssueType(ISSUE_TYPES.includes(audit.issueType as (typeof ISSUE_TYPES)[number]) ? audit.issueType : "Other");
+      setOtherIssueType(ISSUE_TYPES.includes(audit.issueType as (typeof ISSUE_TYPES)[number]) ? "" : audit.issueType);
       setAuditor(audit.auditor);
       setNotes(audit.notes);
     } else {
@@ -97,7 +97,7 @@ export default function AddEditForm({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               list="categories-list"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
               placeholder="e.g. Baby Care"
               required
             />
@@ -114,7 +114,7 @@ export default function AddEditForm({
               value={retailer}
               onChange={(e) => setRetailer(e.target.value)}
               list="retailers-list"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
               placeholder="e.g. Walmart"
               required
             />
@@ -130,7 +130,7 @@ export default function AddEditForm({
               type="url"
               value={pogLink}
               onChange={(e) => setPogLink(e.target.value)}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
               placeholder="https://..."
               required
             />
@@ -139,8 +139,8 @@ export default function AddEditForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type</label>
             <select
               value={issueType}
-              onChange={(e) => setIssueType(e.target.value as any)}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onChange={(e) => setIssueType(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
             >
               {ISSUE_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -153,7 +153,7 @@ export default function AddEditForm({
                 type="text"
                 value={otherIssueType}
                 onChange={(e) => setOtherIssueType(e.target.value)}
-                className="mt-2 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-2 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
                 placeholder="Describe issue type"
                 required
               />
@@ -165,7 +165,7 @@ export default function AddEditForm({
               type="text"
               value={auditor}
               onChange={(e) => setAuditor(e.target.value)}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
               placeholder="Your name"
               required
             />
@@ -176,7 +176,7 @@ export default function AddEditForm({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
               placeholder="Details about the issue..."
             />
           </div>
@@ -190,7 +190,7 @@ export default function AddEditForm({
             </button>
             <button
               type="submit"
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded bg-storesight-purple px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               {isEditing ? "Save" : "Add Entry"}
             </button>

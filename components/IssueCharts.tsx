@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import type { AuditRecord } from "@/lib/types";
 
-const CHART_COLORS = ["#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#6b7280"];
+const CHART_COLORS = ["#300E45", "#5c3d6e", "#f59e0b", "#ef4444", "#6b7280"];
 
 interface IssueChartsProps {
   audits: AuditRecord[];
@@ -58,7 +58,7 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
               <XAxis type="number" />
               <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="value" name="Count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" name="Count" fill="#300E45" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -75,13 +75,13 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
               >
                 {byIssueType.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v: number) => [v, "Count"]} />
+              <Tooltip />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
