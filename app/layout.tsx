@@ -26,7 +26,7 @@ export default function RootLayout({
                 className="h-8 w-auto"
               />
               <span className="text-sm font-medium text-storesight-purple/80 border-l border-gray-200 pl-3">
-                POG Audit
+                Sheets
               </span>
             </Link>
             <NavLinks />
