@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { AuditRecord } from "@/lib/types";
 import AddEditForm from "./AddEditForm";
 import TrashIcon from "./TrashIcon";
@@ -31,6 +31,7 @@ function exportToCsv(audits: AuditRecord[]) {
 
 export default function AuditTable({ audits: initialAudits }: { audits: AuditRecord[] }) {
   const [audits, setAudits] = useState(initialAudits);
+  const [configuredIssueTypes, setConfiguredIssueTypes] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AuditRecord | null>(null);
   const [page, setPage] = useState(1);
@@ -41,10 +42,25 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
   const [filterIssueType, setFilterIssueType] = useState("");
   const [searchNotes, setSearchNotes] = useState("");
 
+  useEffect(() => {
+    fetch("/api/issue-types")
+      .then((r) => r.json())
+      .then(setConfiguredIssueTypes)
+      .catch(() => setConfiguredIssueTypes([]));
+  }, []);
+
   const refresh = async () => {
-    const res = await fetch("/api/audits");
-    const data = await res.json();
-    setAudits(data);
+    try {
+      const res = await fetch("/api/audits");
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        console.error("Audits API error:", data);
+        return;
+      }
+      setAudits(data);
+    } catch (err) {
+      console.error("Failed to refresh audits:", err);
+    }
   };
 
   const categories = useMemo(
@@ -55,9 +71,14 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
     () => Array.from(new Set(audits.map((a) => a.retailer).filter(Boolean))).sort(),
     [audits]
   );
-  const issueTypes = useMemo(
-    () => Array.from(new Set(audits.map((a) => a.issueType).filter(Boolean))).sort(),
+  const issueTypesFromAudits = useMemo(
+    () => Array.from(new Set(audits.map((a) => a.issueType).filter(Boolean))),
     [audits]
+  );
+  const issueTypes = useMemo(
+    () =>
+      Array.from(new Set([...configuredIssueTypes, ...issueTypesFromAudits])).sort(),
+    [configuredIssueTypes, issueTypesFromAudits]
   );
 
   const filtered = useMemo(() => {
@@ -316,6 +337,8 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           audit={editing}
           categories={categories}
           retailers={retailers}
+          issueTypes={issueTypes}
+          onIssueTypesChange={setConfiguredIssueTypes}
           onSave={() => {
             refresh();
             setShowForm(false);

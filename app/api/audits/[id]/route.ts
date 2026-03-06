@@ -19,8 +19,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
     }
     return NextResponse.json(record);
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Invalid request body";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
 

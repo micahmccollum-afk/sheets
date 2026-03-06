@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ISSUE_TYPES } from "@/lib/types";
 import type { AuditRecord } from "@/lib/types";
+import IssueTypeManager from "./IssueTypeManager";
 
 interface AddEditFormProps {
   audit?: AuditRecord | null;
   categories: string[];
   retailers: string[];
+  issueTypes: string[];
+  onIssueTypesChange?: (types: string[]) => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -16,16 +18,18 @@ export default function AddEditForm({
   audit,
   categories,
   retailers,
+  issueTypes,
+  onIssueTypesChange,
   onSave,
   onCancel,
 }: AddEditFormProps) {
   const [category, setCategory] = useState("");
   const [retailer, setRetailer] = useState("");
   const [pogLink, setPogLink] = useState("");
-  const [issueType, setIssueType] = useState("Over Captured");
-  const [otherIssueType, setOtherIssueType] = useState("");
+  const [issueType, setIssueType] = useState("");
   const [auditor, setAuditor] = useState("");
   const [notes, setNotes] = useState("");
+  const [showIssueTypeManager, setShowIssueTypeManager] = useState(false);
 
   const isEditing = !!audit;
 
@@ -34,48 +38,50 @@ export default function AddEditForm({
       setCategory(audit.category);
       setRetailer(audit.retailer);
       setPogLink(audit.pogLink);
-      setIssueType(ISSUE_TYPES.includes(audit.issueType as (typeof ISSUE_TYPES)[number]) ? audit.issueType : "Other");
-      setOtherIssueType(ISSUE_TYPES.includes(audit.issueType as (typeof ISSUE_TYPES)[number]) ? "" : audit.issueType);
+      setIssueType(audit.issueType);
       setAuditor(audit.auditor);
       setNotes(audit.notes);
     } else {
       setCategory("");
       setRetailer("");
       setPogLink("");
-      setIssueType("Over Captured");
-      setOtherIssueType("");
+      setIssueType(issueTypes[0] ?? "");
       setAuditor("");
       setNotes("");
     }
-  }, [audit]);
+  }, [audit, issueTypes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const resolvedIssueType = issueType === "Other" ? otherIssueType : issueType;
-    if (!resolvedIssueType.trim()) return;
+    if (!issueType.trim()) return;
 
     const payload = {
       category: category.trim(),
       retailer: retailer.trim(),
       pogLink: pogLink.trim(),
-      issueType: resolvedIssueType.trim(),
+      issueType: issueType.trim(),
       auditor: auditor.trim(),
       notes: notes.trim(),
     };
 
     try {
-      if (audit) {
-        await fetch(`/api/audits/${audit.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await fetch("/api/audits", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+      const res = audit
+        ? await fetch(`/api/audits/${audit.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        : await fetch("/api/audits", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = (err as { error?: string }).error ?? `Failed to save (${res.status})`;
+        alert(msg);
+        return;
       }
       onSave();
     } catch {
@@ -86,12 +92,12 @@ export default function AddEditForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">
           {isEditing ? "Edit Entry" : "Add Entry"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
             <input
               type="text"
               value={category}
@@ -108,7 +114,7 @@ export default function AddEditForm({
             </datalist>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Retailer</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Retailer</label>
             <input
               type="text"
               value={retailer}
@@ -125,7 +131,7 @@ export default function AddEditForm({
             </datalist>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">POG Link</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">POG Link</label>
             <input
               type="url"
               value={pogLink}
@@ -136,31 +142,39 @@ export default function AddEditForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type</label>
-            <select
+            <div className="mb-1 flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">Issue Type</label>
+              <button
+                type="button"
+                onClick={() => setShowIssueTypeManager(true)}
+                className="text-xs text-storesight-purple hover:underline"
+              >
+                Manage types
+              </button>
+            </div>
+            <input
+              type="text"
               value={issueType}
               onChange={(e) => setIssueType(e.target.value)}
+              list="issue-types-list"
               className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
-            >
-              {ISSUE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
+              placeholder="Type or select issue type"
+              required
+            />
+            <datalist id="issue-types-list">
+              {issueTypes.map((t) => (
+                <option key={t} value={t} />
               ))}
-            </select>
-            {issueType === "Other" && (
-              <input
-                type="text"
-                value={otherIssueType}
-                onChange={(e) => setOtherIssueType(e.target.value)}
-                className="mt-2 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
-                placeholder="Describe issue type"
-                required
-              />
-            )}
+            </datalist>
           </div>
+          {showIssueTypeManager && (
+            <IssueTypeManager
+              onClose={() => setShowIssueTypeManager(false)}
+              onUpdate={(types) => onIssueTypesChange?.(types)}
+            />
+          )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Auditor</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Auditor</label>
             <input
               type="text"
               value={auditor}
@@ -171,7 +185,7 @@ export default function AddEditForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -180,7 +194,7 @@ export default function AddEditForm({
               placeholder="Details about the issue..."
             />
           </div>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onCancel}

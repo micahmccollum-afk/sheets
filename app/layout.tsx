@@ -4,7 +4,7 @@ import "./globals.css";
 import NavLinks from "@/components/NavLinks";
 
 export const metadata: Metadata = {
-  title: "POG Audit | Storesight",
+  title: "Sheets | Storesight",
   description: "Track and audit planogram capture issues across product categories",
 };
 
