@@ -1,10 +1,16 @@
 import path from "path";
 import fs from "fs";
 import { randomUUID } from "crypto";
+import { put, get } from "@vercel/blob";
 import { AuditRecord } from "./types";
 
+const BLOB_PATH = "pog-audit/audits.json";
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "audits.json");
+
+function isBlobStorageEnabled() {
+  return !!process.env.BLOB_READ_WRITE_TOKEN;
+}
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -12,56 +18,93 @@ function ensureDataDir() {
   }
 }
 
-function readAudits(): AuditRecord[] {
-  ensureDataDir();
-  if (!fs.existsSync(DATA_FILE)) {
+async function readAuditsBlob(): Promise<AuditRecord[]> {
+  try {
+    const result = await get(BLOB_PATH, { access: "private" });
+    if (!result?.stream) return [];
+    const text = await new Response(result.stream).text();
+    return JSON.parse(text);
+  } catch {
     return [];
   }
-  const raw = fs.readFileSync(DATA_FILE, "utf-8");
+}
+
+function readAuditsFile(): AuditRecord[] {
+  ensureDataDir();
+  if (!fs.existsSync(DATA_FILE)) return [];
   try {
+    const raw = fs.readFileSync(DATA_FILE, "utf-8");
     return JSON.parse(raw);
   } catch {
     return [];
   }
 }
 
-function writeAudits(audits: AuditRecord[]) {
+async function readAudits(): Promise<AuditRecord[]> {
+  return isBlobStorageEnabled() ? readAuditsBlob() : readAuditsFile();
+}
+
+async function writeAuditsBlob(audits: AuditRecord[]) {
+  await put(BLOB_PATH, JSON.stringify(audits, null, 2), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+  });
+}
+
+function writeAuditsFile(audits: AuditRecord[]) {
   ensureDataDir();
   fs.writeFileSync(DATA_FILE, JSON.stringify(audits, null, 2), "utf-8");
 }
 
-export function getAllAudits(): AuditRecord[] {
+async function writeAudits(audits: AuditRecord[]) {
+  if (isBlobStorageEnabled()) {
+    await writeAuditsBlob(audits);
+  } else {
+    writeAuditsFile(audits);
+  }
+}
+
+export async function getAllAudits(): Promise<AuditRecord[]> {
   return readAudits();
 }
 
-export function getAuditById(id: string): AuditRecord | undefined {
-  return readAudits().find((a) => a.id === id);
+export async function getAuditById(id: string): Promise<AuditRecord | undefined> {
+  const audits = await readAudits();
+  return audits.find((a) => a.id === id);
 }
 
-export function createAudit(data: Omit<AuditRecord, "id" | "createdAt">): AuditRecord {
-  const audits = readAudits();
+export async function createAudit(
+  data: Omit<AuditRecord, "id" | "createdAt">
+): Promise<AuditRecord> {
+  const audits = await readAudits();
   const record: AuditRecord = {
     ...data,
     id: randomUUID(),
     createdAt: new Date().toISOString(),
   };
   audits.push(record);
-  writeAudits(audits);
+  await writeAudits(audits);
   return record;
 }
 
-export function updateAudit(id: string, data: Partial<AuditRecord>): AuditRecord | null {
-  const audits = readAudits();
+export async function updateAudit(
+  id: string,
+  data: Partial<AuditRecord>
+): Promise<AuditRecord | null> {
+  const audits = await readAudits();
   const index = audits.findIndex((a) => a.id === id);
   if (index === -1) return null;
   audits[index] = { ...audits[index], ...data };
-  writeAudits(audits);
+  await writeAudits(audits);
   return audits[index];
 }
 
-export function deleteAudit(id: string): boolean {
-  const audits = readAudits().filter((a) => a.id !== id);
-  if (audits.length === readAudits().length) return false;
-  writeAudits(audits);
+export async function deleteAudit(id: string): Promise<boolean> {
+  const audits = await readAudits();
+  const filtered = audits.filter((a) => a.id !== id);
+  if (filtered.length === audits.length) return false;
+  await writeAudits(filtered);
   return true;
 }

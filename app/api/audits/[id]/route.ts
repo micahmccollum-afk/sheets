@@ -14,7 +14,7 @@ export async function PATCH(
     for (const key of EDITABLE_FIELDS) {
       if (body[key] !== undefined) updates[key] = String(body[key]).trim();
     }
-    const record = updateAudit(id, updates);
+    const record = await updateAudit(id, updates);
     if (!record) {
       return NextResponse.json({ error: "Audit not found" }, { status: 404 });
     }
@@ -29,7 +29,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const deleted = deleteAudit(id);
+  const deleted = await deleteAudit(id);
   if (!deleted) {
     return NextResponse.json({ error: "Audit not found" }, { status: 404 });
   }

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const record = createAudit({
+    const record = await createAudit({
       category: String(category).trim(),
       retailer: String(retailer).trim(),
       pogLink: String(pogLink).trim(),

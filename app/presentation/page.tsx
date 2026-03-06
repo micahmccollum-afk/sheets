@@ -4,8 +4,8 @@ import IssueCharts from "@/components/IssueCharts";
 import PresentationTable from "@/components/PresentationTable";
 import ExportButton from "@/components/ExportButton";
 
-export default function PresentationPage() {
-  const audits = getAllAudits();
+export default async function PresentationPage() {
+  const audits = await getAllAudits();
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">

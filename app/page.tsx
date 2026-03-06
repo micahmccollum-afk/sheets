@@ -1,10 +1,11 @@
 import { getAllAudits } from "@/lib/data";
 import AuditTable from "@/components/AuditTable";
+import type { AuditRecord } from "@/lib/types";
 
-export default function Home() {
-  let audits;
+export default async function Home() {
+  let audits: AuditRecord[];
   try {
-    audits = getAllAudits();
+    audits = await getAllAudits();
   } catch {
     audits = [];
   }
