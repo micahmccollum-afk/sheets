@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { AuditRecord } from "@/lib/types";
+import ComboboxWithAdd from "./ComboboxWithAdd";
 import IssueTypeManager from "./IssueTypeManager";
 
 interface AddEditFormProps {
@@ -46,7 +47,7 @@ export default function AddEditForm({
       setRetailer("");
       setPogLink("");
       setIssueType(issueTypes[0] ?? "");
-      setAuditor("");
+      setAuditor("Micah McCollum");
       setNotes("");
     }
   }, [audit, issueTypes]);
@@ -115,20 +116,13 @@ export default function AddEditForm({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Retailer</label>
-            <input
-              type="text"
+            <ComboboxWithAdd
               value={retailer}
-              onChange={(e) => setRetailer(e.target.value)}
-              list="retailers-list"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
+              onChange={setRetailer}
+              options={retailers}
               placeholder="e.g. Walmart"
-              required
+              addLabel="Add Retailer"
             />
-            <datalist id="retailers-list">
-              {retailers.map((r) => (
-                <option key={r} value={r} />
-              ))}
-            </datalist>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">POG Link</label>
@@ -152,20 +146,32 @@ export default function AddEditForm({
                 Manage types
               </button>
             </div>
-            <input
-              type="text"
+            <ComboboxWithAdd
               value={issueType}
-              onChange={(e) => setIssueType(e.target.value)}
-              list="issue-types-list"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
+              onChange={setIssueType}
+              options={issueTypes}
               placeholder="Type or select issue type"
-              required
+              addLabel="Add Issue Type"
+              onAddNew={async (newType) => {
+                try {
+                  const res = await fetch("/api/issue-types", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: newType }),
+                  });
+                  const data = await res.json().catch(() => ({}));
+                  if (!res.ok) {
+                    alert((data as { error?: string }).error ?? "Failed to add issue type");
+                    return;
+                  }
+                  if (data.types) {
+                    onIssueTypesChange?.(data.types);
+                  }
+                } catch {
+                  alert("Failed to add issue type");
+                }
+              }}
             />
-            <datalist id="issue-types-list">
-              {issueTypes.map((t) => (
-                <option key={t} value={t} />
-              ))}
-            </datalist>
           </div>
           {showIssueTypeManager && (
             <IssueTypeManager

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAllAudits, createAudit } from "@/lib/data";
 
 export async function GET() {
-  const audits = getAllAudits();
+  const audits = await getAllAudits();
   return NextResponse.json(audits);
 }
 

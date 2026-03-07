@@ -88,7 +88,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
     if (filterIssueType) list = list.filter((a) => a.issueType === filterIssueType);
     if (searchNotes) {
       const q = searchNotes.toLowerCase();
-      list = list.filter((a) => a.notes.toLowerCase().includes(q));
+      list = list.filter((a) => (a.notes ?? "").toLowerCase().includes(q));
     }
     if (sortKey) {
       list.sort((a, b) => {
@@ -117,7 +117,13 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this entry?")) return;
-    await fetch(`/api/audits/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/audits/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert((err as { error?: string }).error ?? "Failed to delete");
+      return;
+    }
+    setAudits((prev) => prev.filter((a) => a.id !== id));
     refresh();
   };
 
