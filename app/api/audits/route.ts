@@ -3,7 +3,9 @@ import { getAllAudits, createAudit } from "@/lib/data";
 
 export async function GET() {
   const audits = await getAllAudits();
-  return NextResponse.json(audits);
+  return NextResponse.json(audits, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(request: Request) {
