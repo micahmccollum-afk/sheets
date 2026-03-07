@@ -11,7 +11,7 @@ interface AddEditFormProps {
   retailers: string[];
   issueTypes: string[];
   onIssueTypesChange?: (types: string[]) => void;
-  onSave: () => void;
+  onSave: (savedRecord?: AuditRecord) => void;
   onCancel: () => void;
 }
 
@@ -41,7 +41,7 @@ export default function AddEditForm({
       setPogLink(audit.pogLink);
       setIssueType(audit.issueType);
       setAuditor(audit.auditor);
-      setNotes(audit.notes);
+      setNotes(audit.notes ?? "");
     } else {
       setCategory("");
       setRetailer("");
@@ -62,7 +62,7 @@ export default function AddEditForm({
       pogLink: pogLink.trim(),
       issueType: issueType.trim(),
       auditor: auditor.trim(),
-      notes: notes.trim(),
+      notes: (notes ?? "").trim(),
     };
 
     try {
@@ -84,7 +84,8 @@ export default function AddEditForm({
         alert(msg);
         return;
       }
-      onSave();
+      const savedRecord = await res.json();
+      onSave(savedRecord);
     } catch {
       alert("Failed to save");
     }

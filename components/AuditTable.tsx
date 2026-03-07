@@ -49,20 +49,6 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       .catch(() => setConfiguredIssueTypes([]));
   }, []);
 
-  const refresh = async () => {
-    try {
-      const res = await fetch("/api/audits");
-      const data = await res.json();
-      if (!res.ok || !Array.isArray(data)) {
-        console.error("Audits API error:", data);
-        return;
-      }
-      setAudits(data);
-    } catch (err) {
-      console.error("Failed to refresh audits:", err);
-    }
-  };
-
   const categories = useMemo(
     () => Array.from(new Set(audits.map((a) => a.category).filter(Boolean))).sort(),
     [audits]
@@ -346,8 +332,16 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           retailers={retailers}
           issueTypes={issueTypes}
           onIssueTypesChange={setConfiguredIssueTypes}
-          onSave={() => {
-            refresh();
+          onSave={(savedRecord) => {
+            if (savedRecord) {
+              if (editing) {
+                setAudits((prev) =>
+                  prev.map((a) => (a.id === savedRecord.id ? savedRecord : a))
+                );
+              } else {
+                setAudits((prev) => [...prev, savedRecord]);
+              }
+            }
             setShowForm(false);
             setEditing(null);
           }}
