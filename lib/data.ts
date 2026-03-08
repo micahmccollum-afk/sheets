@@ -27,7 +27,11 @@ export async function createAudit(
   data: Omit<AuditRecord, "id" | "createdAt">
 ): Promise<AuditRecord> {
   if (!isFirebaseConfigured()) {
-    throw new Error("Firebase is not configured. See FIREBASE_SETUP.md.");
+    const { getMissingFirebaseVars } = await import("./firebase");
+    const missing = getMissingFirebaseVars();
+    throw new Error(
+      `Firebase not configured. Add to Vercel: ${missing.join(", ")}. See FIREBASE_SETUP.md.`
+    );
   }
   const db = getDb();
   const id = randomUUID();

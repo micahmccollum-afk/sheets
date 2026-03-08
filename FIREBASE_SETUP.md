@@ -8,9 +8,9 @@ This app uses Firebase Firestore for data storage. Follow these steps to get you
 |----------|-------------|
 | `FIREBASE_PROJECT_ID` | Your Firebase project ID (e.g. `storesight-sheets`) |
 | `FIREBASE_CLIENT_EMAIL` | Service account email (e.g. `firebase-adminsdk-xxxxx@project.iam.gserviceaccount.com`) |
-| `FIREBASE_PRIVATE_KEY` | Full private key from the service account JSON, including `-----BEGIN/END PRIVATE KEY-----` |
+| `FIREBASE_PRIVATE_KEY_BASE64` or `FIREBASE_PRIVATE_KEY` | Base64-encoded private key (recommended) or raw private key |
 
-All three come from the service account JSON you download in Step 3.
+All come from the service account JSON. Use base64 for the private key to avoid newline issues on Vercel.
 
 ## 1. Create a Firebase Project
 
@@ -43,12 +43,23 @@ Open the downloaded JSON file. You need three values:
 |--------------|------------------------------|
 | `FIREBASE_PROJECT_ID` | `project_id` |
 | `FIREBASE_CLIENT_EMAIL` | `client_email` |
-| `FIREBASE_PRIVATE_KEY` | `private_key` (the full value including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`) |
+| `FIREBASE_PRIVATE_KEY` or `FIREBASE_PRIVATE_KEY_BASE64` | `private_key` |
 
-**Important for `FIREBASE_PRIVATE_KEY`:**
-- Copy the entire key including the `\n` characters (or actual newlines)
-- When setting in Vercel or `.env.local`, if the key has actual newlines, you may need to replace them with `\n` as a literal two-character sequence
-- Some platforms require: `"-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n"`
+**Option A – Base64 (recommended for Vercel):**
+
+Encode the `private_key` value as base64 and set `FIREBASE_PRIVATE_KEY_BASE64`:
+
+```bash
+# macOS/Linux – from the JSON file
+cat your-service-account.json | jq -r '.private_key' | base64 | tr -d '\n'
+```
+
+Or use any base64 tool: take the full `private_key` string (including newlines) and base64-encode it. Set that result as `FIREBASE_PRIVATE_KEY_BASE64`.
+
+**Option B – Raw key:**
+
+Use `FIREBASE_PRIVATE_KEY` with the full key. Replace newlines with `\n` if needed:
+`"-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n"`
 
 ## 5. Create Firestore Collections
 
@@ -68,8 +79,10 @@ Create `.env.local` in the project root:
 ```
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_KEY_HERE\n-----END PRIVATE KEY-----\n"
+FIREBASE_PRIVATE_KEY_BASE64=your-base64-encoded-private-key
 ```
+
+Or use `FIREBASE_PRIVATE_KEY` with the raw key if you prefer.
 
 ### Vercel deployment
 
@@ -78,7 +91,7 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_KEY_HERE\n-----END PRIVA
 3. Add each variable:
    - `FIREBASE_PROJECT_ID`
    - `FIREBASE_CLIENT_EMAIL`
-   - `FIREBASE_PRIVATE_KEY` (paste the full key; Vercel handles multi-line values)
+   - `FIREBASE_PRIVATE_KEY_BASE64` (base64-encoded private key — recommended to avoid newline issues)
 4. Redeploy the app
 
 ## 7. (Optional) Firestore Security Rules

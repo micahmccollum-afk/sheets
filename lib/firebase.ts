@@ -4,7 +4,12 @@ import { getFirestore } from "firebase-admin/firestore";
 function getFirebaseCredential(): ServiceAccount | undefined {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const privateKeyBase64 = process.env.FIREBASE_PRIVATE_KEY_BASE64;
+  const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
+
+  const privateKey = privateKeyBase64
+    ? Buffer.from(privateKeyBase64, "base64").toString("utf-8")
+    : privateKeyRaw?.replace(/\\n/g, "\n");
 
   if (!projectId || !clientEmail || !privateKey) {
     return undefined;
@@ -13,12 +18,22 @@ function getFirebaseCredential(): ServiceAccount | undefined {
   return {
     projectId,
     clientEmail,
-    privateKey: privateKey.replace(/\\n/g, "\n"),
+    privateKey,
   };
 }
 
 export function isFirebaseConfigured(): boolean {
   return !!getFirebaseCredential();
+}
+
+export function getMissingFirebaseVars(): string[] {
+  const missing: string[] = [];
+  if (!process.env.FIREBASE_PROJECT_ID) missing.push("FIREBASE_PROJECT_ID");
+  if (!process.env.FIREBASE_CLIENT_EMAIL) missing.push("FIREBASE_CLIENT_EMAIL");
+  const hasKey =
+    process.env.FIREBASE_PRIVATE_KEY_BASE64 || process.env.FIREBASE_PRIVATE_KEY;
+  if (!hasKey) missing.push("FIREBASE_PRIVATE_KEY_BASE64 or FIREBASE_PRIVATE_KEY");
+  return missing;
 }
 
 function initFirebase(): void {
@@ -32,8 +47,9 @@ function initFirebase(): void {
 
 export function getDb() {
   if (!isFirebaseConfigured()) {
+    const missing = getMissingFirebaseVars();
     throw new Error(
-      "Missing Firebase credentials. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY. See FIREBASE_SETUP.md."
+      `Firebase not configured. Missing in Vercel env: ${missing.join(", ")}. See FIREBASE_SETUP.md.`
     );
   }
   initFirebase();
