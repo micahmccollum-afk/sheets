@@ -47,14 +47,11 @@ Open the downloaded JSON file. You need three values:
 
 **Option A – Base64 (recommended for Vercel):**
 
-Encode the `private_key` value as base64 and set `FIREBASE_PRIVATE_KEY_BASE64`:
-
+Use the helper script (easiest):
 ```bash
-# macOS/Linux – from the JSON file
-cat your-service-account.json | jq -r '.private_key' | base64 | tr -d '\n'
+node scripts/encode-firebase-key.js ~/Downloads/your-service-account.json
 ```
-
-Or use any base64 tool: take the full `private_key` string (including newlines) and base64-encode it. Set that result as `FIREBASE_PRIVATE_KEY_BASE64`.
+Copy the output into `FIREBASE_PRIVATE_KEY_BASE64`. When pasting into Vercel, ensure no extra spaces or line breaks — it must be one continuous string.
 
 **Option B – Raw key:**
 

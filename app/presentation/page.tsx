@@ -3,6 +3,9 @@ import SummaryCards from "@/components/SummaryCards";
 import IssueCharts from "@/components/IssueCharts";
 import PresentationTable from "@/components/PresentationTable";
 import ExportButton from "@/components/ExportButton";
+import RefreshButton from "@/components/RefreshButton";
+
+export const dynamic = "force-dynamic";
 
 export default async function PresentationPage() {
   const audits = await getAllAudits();
@@ -15,7 +18,10 @@ export default async function PresentationPage() {
             Summary of planogram capture issues across product categories
           </p>
         </div>
-        <ExportButton audits={audits} />
+        <div className="flex gap-2">
+          <RefreshButton />
+          <ExportButton audits={audits} />
+        </div>
       </div>
       <SummaryCards audits={audits} />
       <IssueCharts audits={audits} />
