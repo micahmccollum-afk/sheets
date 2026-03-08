@@ -4,7 +4,7 @@ import "./globals.css";
 import NavLinks from "@/components/NavLinks";
 
 export const metadata: Metadata = {
-  title: "Sheets | Storesight",
+  title: "Audits | Storesight",
   description: "Track and audit planogram capture issues across product categories",
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({
                 className="h-8 w-auto"
               />
               <span className="text-sm font-medium text-storesight-purple/80 border-l border-gray-200 pl-3">
-                Sheets
+                Audits
               </span>
             </Link>
             <NavLinks />
