@@ -124,8 +124,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       return;
     }
     setAudits((prev) => prev.filter((a) => a.id !== id));
-    // Don't call refresh() - it can overwrite with stale/cached data on Vercel
-    // before Blob propagation. The optimistic update is sufficient.
+    // Optimistic update is sufficient; no refetch needed
   };
 
   return (

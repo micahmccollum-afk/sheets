@@ -24,8 +24,7 @@ A dashboard for auditing and tracking planogram (POG) capture issues across prod
 
 ## Data Storage
 
-- **Local:** Audit data is stored in `data/audits.json`. The file is created automatically when you add your first entry.
-- **Vercel:** When deployed to Vercel, data is stored in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Create a Blob store in your project's Storage tab — `BLOB_READ_WRITE_TOKEN` is added automatically.
+Data is stored in **Firebase Firestore**. See [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) for setup instructions and required credentials.
 
 ## Usage
 
