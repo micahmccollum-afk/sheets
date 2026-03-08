@@ -2,6 +2,8 @@ import { getAllAudits } from "@/lib/data";
 import AuditTable from "@/components/AuditTable";
 import type { AuditRecord } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   let audits: AuditRecord[];
   try {

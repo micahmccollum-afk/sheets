@@ -49,6 +49,20 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       .catch(() => setConfiguredIssueTypes([]));
   }, []);
 
+  const refresh = async () => {
+    try {
+      const res = await fetch("/api/audits");
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        console.error("Audits API error:", data);
+        return;
+      }
+      setAudits(data);
+    } catch (err) {
+      console.error("Failed to refresh audits:", err);
+    }
+  };
+
   const categories = useMemo(
     () => Array.from(new Set(audits.map((a) => a.category).filter(Boolean))).sort(),
     [audits]
@@ -125,6 +139,12 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           className="rounded bg-storesight-purple px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
           Add Entry
+        </button>
+        <button
+          onClick={refresh}
+          className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Refresh
         </button>
         <button
           onClick={() => exportToCsv(filtered)}
