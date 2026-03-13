@@ -1,5 +1,6 @@
 import { getAllAudits } from "@/lib/data";
 import SummaryCards from "@/components/SummaryCards";
+import CategoryCounts from "@/components/CategoryCounts";
 import IssueCharts from "@/components/IssueCharts";
 import PresentationTable from "@/components/PresentationTable";
 import ExportButton from "@/components/ExportButton";
@@ -24,6 +25,7 @@ export default async function PresentationPage() {
         </div>
       </div>
       <SummaryCards audits={audits} />
+      <CategoryCounts audits={audits} />
       <IssueCharts audits={audits} />
       <PresentationTable audits={audits} />
     </div>

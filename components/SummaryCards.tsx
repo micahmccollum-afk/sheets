@@ -32,12 +32,18 @@ export default function SummaryCards({ audits }: SummaryCardsProps) {
         <p className="text-sm font-medium text-gray-500">Error Rate</p>
         <p className="mt-1 text-3xl font-semibold text-gray-900">
           {errorRate.toFixed(1)}%
+          <span className="ml-1.5 text-sm font-normal text-gray-500">
+            ({failures} / {total})
+          </span>
         </p>
       </div>
       <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-medium text-gray-500">High Overlap Rate</p>
         <p className="mt-1 text-2xl font-semibold text-gray-900">
           {highOverlapRate.toFixed(1)}%
+          <span className="ml-1.5 text-sm font-normal text-gray-500">
+            ({highOverlapCount} / {total})
+          </span>
         </p>
       </div>
       <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">

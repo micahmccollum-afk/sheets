@@ -7,7 +7,7 @@ export default function NavLinks() {
   const path = usePathname();
   const links = [
     { href: "/", label: "Audit Table" },
-    { href: "/presentation", label: "Presentation" },
+    { href: "/presentation", label: "Analytics" },
   ];
   return (
     <nav className="flex gap-6">
