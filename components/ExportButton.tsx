@@ -4,14 +4,25 @@ import type { AuditRecord } from "@/lib/types";
 
 export default function ExportButton({ audits }: { audits: AuditRecord[] }) {
   const exportToCsv = () => {
-    const headers = ["Category", "Retailer", "POG Link", "Issue Type", "Auditor", "Notes"];
+    const headers = [
+      "Status",
+      "Category",
+      "Retailer",
+      "POG Link",
+      "Issue Type",
+      "Severity",
+      "High Overlap",
+      "Notes",
+    ];
     const rows = audits.map((a) =>
       [
+        a.status ? "Pass" : "Fail",
         a.category,
         a.retailer,
         a.pogLink,
-        a.issueType,
-        a.auditor,
+        a.issueType ?? "",
+        a.severity ?? "",
+        a.isHighOverlap ? "Yes" : "No",
         `"${(a.notes ?? "").replace(/"/g, '""')}"`,
       ].join(",")
     );

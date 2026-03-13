@@ -12,7 +12,18 @@ export async function getAllAudits(): Promise<AuditRecord[]> {
   if (!isFirebaseConfigured()) return [];
   const db = getDb();
   const snapshot = await db.collection(AUDITS_COLLECTION).orderBy("createdAt", "desc").get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as AuditRecord));
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      status: data.status ?? false,
+      isHighOverlap: data.isHighOverlap ?? false,
+      severity: data.severity ?? "",
+      issueType: data.issueType ?? "",
+      notes: data.notes ?? "",
+    } as AuditRecord;
+  });
 }
 
 export async function getAuditById(id: string): Promise<AuditRecord | undefined> {
@@ -20,7 +31,16 @@ export async function getAuditById(id: string): Promise<AuditRecord | undefined>
   const db = getDb();
   const doc = await db.collection(AUDITS_COLLECTION).doc(id).get();
   if (!doc.exists) return undefined;
-  return { id: doc.id, ...doc.data() } as AuditRecord;
+  const data = doc.data()!;
+  return {
+    id: doc.id,
+    ...data,
+    status: data.status ?? false,
+    isHighOverlap: data.isHighOverlap ?? false,
+    severity: data.severity ?? "",
+    issueType: data.issueType ?? "",
+    notes: data.notes ?? "",
+  } as AuditRecord;
 }
 
 export async function createAudit(

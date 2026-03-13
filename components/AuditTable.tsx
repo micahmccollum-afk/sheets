@@ -7,15 +7,28 @@ import TrashIcon from "./TrashIcon";
 
 const PAGE_SIZE = 25;
 
+type SortKey = "status" | "category" | "retailer" | "issueType" | "severity";
+
 function exportToCsv(audits: AuditRecord[]) {
-  const headers = ["Category", "Retailer", "POG Link", "Issue Type", "Auditor", "Notes"];
+  const headers = [
+    "Status",
+    "Category",
+    "Retailer",
+    "POG Link",
+    "Issue Type",
+    "Severity",
+    "High Overlap",
+    "Notes",
+  ];
   const rows = audits.map((a) =>
     [
+      a.status ? "Pass" : "Fail",
       a.category,
       a.retailer,
       a.pogLink,
-      a.issueType,
-      a.auditor,
+      a.issueType ?? "",
+      a.severity ?? "",
+      a.isHighOverlap ? "Yes" : "No",
       `"${(a.notes ?? "").replace(/"/g, '""')}"`,
     ].join(",")
   );
@@ -35,8 +48,9 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AuditRecord | null>(null);
   const [page, setPage] = useState(1);
-  const [sortKey, setSortKey] = useState<keyof AuditRecord | "">("");
+  const [sortKey, setSortKey] = useState<SortKey | "">("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [filterStatus, setFilterStatus] = useState<"" | "pass" | "fail">("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterRetailer, setFilterRetailer] = useState("");
   const [filterIssueType, setFilterIssueType] = useState("");
@@ -83,6 +97,8 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
 
   const filtered = useMemo(() => {
     let list = [...audits];
+    if (filterStatus === "pass") list = list.filter((a) => a.status);
+    if (filterStatus === "fail") list = list.filter((a) => !a.status);
     if (filterCategory) list = list.filter((a) => a.category === filterCategory);
     if (filterRetailer) list = list.filter((a) => a.retailer === filterRetailer);
     if (filterIssueType) list = list.filter((a) => a.issueType === filterIssueType);
@@ -99,7 +115,16 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       });
     }
     return list;
-  }, [audits, filterCategory, filterRetailer, filterIssueType, searchNotes, sortKey, sortDir]);
+  }, [
+    audits,
+    filterStatus,
+    filterCategory,
+    filterRetailer,
+    filterIssueType,
+    searchNotes,
+    sortKey,
+    sortDir,
+  ]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const paginated = useMemo(() => {
@@ -107,7 +132,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
     return filtered.slice(start, start + PAGE_SIZE);
   }, [filtered, page]);
 
-  const handleSort = (key: keyof AuditRecord) => {
+  const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else {
       setSortKey(key);
@@ -124,7 +149,6 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       return;
     }
     setAudits((prev) => prev.filter((a) => a.id !== id));
-    // Optimistic update is sufficient; no refetch needed
   };
 
   return (
@@ -152,6 +176,18 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
         >
           Export CSV
         </button>
+        <select
+          value={filterStatus}
+          onChange={(e) => {
+            setFilterStatus(e.target.value as "" | "pass" | "fail");
+            setPage(1);
+          }}
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"
+        >
+          <option value="">All</option>
+          <option value="pass">Passes Only</option>
+          <option value="fail">Fails Only</option>
+        </select>
         <select
           value={filterCategory}
           onChange={(e) => {
@@ -205,7 +241,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
             setPage(1);
           }}
           placeholder="Search notes..."
-          className="rounded border border-gray-300 bg-white px-3 py-2 text-sm w-48"
+          className="w-48 rounded border border-gray-300 bg-white px-3 py-2 text-sm"
         />
       </div>
 
@@ -213,6 +249,12 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
+              <th
+                className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 hover:bg-gray-200"
+                onClick={() => handleSort("status")}
+              >
+                Status {sortKey === "status" && (sortDir === "asc" ? "↑" : "↓")}
+              </th>
               <th
                 className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 hover:bg-gray-200"
                 onClick={() => handleSort("category")}
@@ -236,9 +278,12 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
               </th>
               <th
                 className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 hover:bg-gray-200"
-                onClick={() => handleSort("auditor")}
+                onClick={() => handleSort("severity")}
               >
-                Auditor {sortKey === "auditor" && (sortDir === "asc" ? "↑" : "↓")}
+                Severity {sortKey === "severity" && (sortDir === "asc" ? "↑" : "↓")}
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                High Overlap
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                 Notes
@@ -251,13 +296,22 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           <tbody className="divide-y divide-gray-200 bg-white">
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
                   No audits yet. Click &quot;Add Entry&quot; to get started.
                 </td>
               </tr>
             ) : (
               paginated.map((a) => (
                 <tr key={a.id} className="hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        a.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {a.status ? "Pass" : "Fail"}
+                    </span>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{a.category}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{a.retailer}</td>
                   <td className="px-4 py-3 text-sm">
@@ -271,23 +325,36 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
                     </a>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        a.issueType === "Over Captured"
-                          ? "bg-amber-100 text-amber-800"
-                          : a.issueType === "Under Captured"
-                          ? "bg-orange-100 text-orange-800"
-                          : a.issueType === "Blurry"
-                          ? "bg-red-100 text-red-800"
-                          : a.issueType === "Missing Sections"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {a.issueType}
-                    </span>
+                    {a.issueType ? (
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          a.issueType === "Over Captured"
+                            ? "bg-amber-100 text-amber-800"
+                            : a.issueType === "Under Captured"
+                            ? "bg-orange-100 text-orange-800"
+                            : a.issueType === "Blurry"
+                            ? "bg-red-100 text-red-800"
+                            : a.issueType === "Missing Sections"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {a.issueType}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{a.auditor}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                    {a.severity || "—"}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                    {a.isHighOverlap ? (
+                      <span className="text-green-600">✓</span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="max-w-xs truncate px-4 py-3 text-sm text-gray-600" title={a.notes}>
                     {a.notes}
                   </td>
@@ -297,13 +364,13 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
                         setEditing(a);
                         setShowForm(true);
                       }}
-                      className="text-storesight-purple hover:underline text-sm mr-2"
+                      className="mr-2 text-sm text-storesight-purple hover:underline"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(a.id)}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                      className="rounded p-1.5 text-red-600 hover:bg-red-50"
                       title="Delete"
                     >
                       <TrashIcon className="w-4 h-4" />
@@ -317,7 +384,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between">
           <p className="text-sm text-gray-600">
             Showing {(page - 1) * PAGE_SIZE + 1}–
             {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}

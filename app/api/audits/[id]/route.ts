@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { updateAudit, deleteAudit } from "@/lib/data";
 
-const EDITABLE_FIELDS = ["category", "retailer", "pogLink", "issueType", "auditor", "notes"] as const;
+const EDITABLE_FIELDS = [
+  "category",
+  "retailer",
+  "pogLink",
+  "status",
+  "issueType",
+  "severity",
+  "isHighOverlap",
+  "notes",
+] as const;
 
 export async function PATCH(
   _request: Request,
@@ -10,9 +19,14 @@ export async function PATCH(
   const { id } = await params;
   try {
     const body = await _request.json();
-    const updates: Record<string, string> = {};
+    const updates: Record<string, string | boolean> = {};
     for (const key of EDITABLE_FIELDS) {
-      if (body[key] !== undefined) updates[key] = String(body[key]).trim();
+      if (body[key] === undefined) continue;
+      if (key === "status" || key === "isHighOverlap") {
+        updates[key] = Boolean(body[key]);
+      } else {
+        updates[key] = String(body[key]).trim();
+      }
     }
     const record = await updateAudit(id, updates);
     if (!record) {
@@ -29,10 +43,15 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const deleted = await deleteAudit(id);
-  if (!deleted) {
-    return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+  try {
+    const { id } = await params;
+    const deleted = await deleteAudit(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Audit not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Delete failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-  return NextResponse.json({ success: true });
 }
