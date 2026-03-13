@@ -55,6 +55,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
   const [filterRetailer, setFilterRetailer] = useState("");
   const [filterIssueType, setFilterIssueType] = useState("");
   const [searchNotes, setSearchNotes] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/issue-types")
@@ -411,6 +412,12 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
         </div>
       )}
 
+      {confirmMessage && (
+        <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+          {confirmMessage}
+        </p>
+      )}
+
       {showForm && (
         <AddEditForm
           audit={editing}
@@ -420,12 +427,10 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           onIssueTypesChange={setConfiguredIssueTypes}
           onSave={(savedRecord) => {
             if (savedRecord) {
-              if (editing) {
-                setAudits((prev) =>
-                  prev.map((a) => (a.id === savedRecord.id ? savedRecord : a))
-                );
-              } else {
-                setAudits((prev) => [...prev, savedRecord]);
+              refresh();
+              if (!editing) {
+                setConfirmMessage("Entry added successfully");
+                setTimeout(() => setConfirmMessage(null), 4000);
               }
             }
             setShowForm(false);
