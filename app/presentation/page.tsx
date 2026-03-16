@@ -1,8 +1,7 @@
 import { getAllAudits } from "@/lib/data";
 import SummaryCards from "@/components/SummaryCards";
-import CategoryCounts from "@/components/CategoryCounts";
-import RetailerCounts from "@/components/RetailerCounts";
 import IssueCharts from "@/components/IssueCharts";
+import AuditsCharts from "@/components/AuditsCharts";
 import PresentationTable from "@/components/PresentationTable";
 import ExportButton from "@/components/ExportButton";
 import RefreshButton from "@/components/RefreshButton";
@@ -26,9 +25,8 @@ export default async function PresentationPage() {
         </div>
       </div>
       <SummaryCards audits={audits} />
-      <CategoryCounts audits={audits} />
-      <RetailerCounts audits={audits} />
       <IssueCharts audits={audits} />
+      <AuditsCharts audits={audits} />
       <PresentationTable audits={audits} />
     </div>
   );
