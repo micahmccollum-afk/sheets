@@ -47,36 +47,31 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
-  const byRetailer = Object.entries(
-    audits.reduce<Record<string, number>>((acc, a) => {
-      const r = (a.retailer || "Unspecified").trim();
-      acc[r] = (acc[r] ?? 0) + 1;
-      return acc;
-    }, {})
-  )
-    .map(([name, count]) => ({ name, count }))
+  type RetailerEntry = { total: number; fail: number; displayName: string };
+  const retailerMap = audits.reduce<Record<string, RetailerEntry>>((acc, a) => {
+    const raw = (a.retailer || "Unspecified").trim() || "Unspecified";
+    const key = raw.replace(/\s+/g, " ").toLowerCase();
+    if (!acc[key]) acc[key] = { total: 0, fail: 0, displayName: raw };
+    acc[key].total += 1;
+    if (!(a.status ?? false)) acc[key].fail += 1;
+    return acc;
+  }, {});
+
+  const byRetailer = Object.entries(retailerMap)
+    .map(([, entry]) => ({ name: entry.displayName || "Unspecified", count: entry.total }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
-  const retailerTotals = audits.reduce<Record<string, number>>((acc, a) => {
-    const r = (a.retailer || "Unspecified").trim();
-    acc[r] = (acc[r] ?? 0) + 1;
-    return acc;
-  }, {});
-  const retailerFails = audits
-    .filter((a) => !(a.status ?? false))
-    .reduce<Record<string, number>>((acc, a) => {
-      const r = (a.retailer || "Unspecified").trim();
-      acc[r] = (acc[r] ?? 0) + 1;
-      return acc;
-    }, {});
-
-  const errorRateByRetailer = Object.keys(retailerTotals)
-    .map((name) => {
-      const total = retailerTotals[name] ?? 0;
-      const fail = retailerFails[name] ?? 0;
-      const rate = total > 0 ? (fail / total) * 100 : 0;
-      return { name, rate: Math.round(rate * 10) / 10, total, fail, labelText: `${fail} / ${total}` };
+  const errorRateByRetailer = Object.entries(retailerMap)
+    .map(([, entry]) => {
+      const rate = entry.total > 0 ? (entry.fail / entry.total) * 100 : 0;
+      return {
+        name: entry.displayName || "Unspecified",
+        rate: Math.round(rate * 10) / 10,
+        total: entry.total,
+        fail: entry.fail,
+        labelText: `${entry.fail} / ${entry.total}`,
+      };
     })
     .sort((a, b) => b.rate - a.rate)
     .slice(0, 12);
@@ -119,10 +114,10 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
         <h3 className="mb-4 text-sm font-semibold text-gray-800">Audits by Retailer</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={byRetailer} layout="vertical" margin={{ left: 80, right: 30 }}>
+            <BarChart data={byRetailer} layout="vertical" margin={{ left: 120, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis type="number" />
-              <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 12 }} />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
