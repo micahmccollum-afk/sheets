@@ -174,7 +174,7 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
                   {errorRateByRetailer.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
                   ))}
-                  <LabelList dataKey="rate" position="right" formatter={(v: number) => `${v}%`} className="text-xs fill-gray-700" />
+                  <LabelList dataKey="rate" position="right" formatter={(value) => value != null ? `${Number(value)}%` : ""} className="text-xs fill-gray-700" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
