@@ -76,7 +76,7 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
       const total = retailerTotals[name] ?? 0;
       const fail = retailerFails[name] ?? 0;
       const rate = total > 0 ? (fail / total) * 100 : 0;
-      return { name, rate: Math.round(rate * 10) / 10, total, fail };
+      return { name, rate: Math.round(rate * 10) / 10, total, fail, labelText: `${fail} / ${total}` };
     })
     .sort((a, b) => b.rate - a.rate)
     .slice(0, 12);
@@ -174,7 +174,7 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
                   {errorRateByRetailer.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
                   ))}
-                  <LabelList dataKey="rate" position="right" formatter={(value) => value != null ? `${Number(value)}%` : ""} className="text-xs fill-gray-700" />
+                  <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
