@@ -25,8 +25,10 @@ export default async function PresentationPage() {
         </div>
       </div>
       <SummaryCards audits={audits} />
-      <IssueCharts audits={audits} />
-      <AuditsCharts audits={audits} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+        <IssueCharts audits={audits} />
+        <AuditsCharts audits={audits} />
+      </div>
       <PresentationTable audits={audits} />
     </div>
   );
