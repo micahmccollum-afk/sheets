@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
-  Legend,
 } from "recharts";
 import type { AuditRecord } from "@/lib/types";
 
@@ -171,17 +170,6 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
                     );
                   }}
                 />
-                <Legend
-                  wrapperStyle={{ fontSize: 12 }}
-                  formatter={(value) => (
-                    <span className="text-gray-700">{value}</span>
-                  )}
-                  payload={[
-                    { value: "High (≥50%)", type: "square", color: ERROR_RATE_HIGH },
-                    { value: "Moderate (25–50%)", type: "square", color: ERROR_RATE_MODERATE },
-                    { value: "Low (<25%)", type: "square", color: ERROR_RATE_LOW },
-                  ]}
-                />
                 <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                   {errorRateByRetailer.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
@@ -191,6 +179,20 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
               </BarChart>
             </ResponsiveContainer>
           )}
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-600">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: ERROR_RATE_HIGH }} aria-hidden />
+              High (≥50%)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: ERROR_RATE_MODERATE }} aria-hidden />
+              Moderate (25–50%)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: ERROR_RATE_LOW }} aria-hidden />
+              {"Low (<25%)"}
+            </span>
+          </div>
         </div>
       </div>
     </div>
