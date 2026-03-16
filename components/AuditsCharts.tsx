@@ -183,7 +183,7 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
                   ]}
                 />
                 <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
-                  {errorRateByRetailer.map((entry, index) => (
+                  {errorRateByRetailer.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
                   ))}
                   <LabelList dataKey="rate" position="right" formatter={(v: number) => `${v}%`} className="text-xs fill-gray-700" />
