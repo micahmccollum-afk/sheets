@@ -17,7 +17,7 @@ const CARD_CLASS =
   "rounded-xl border border-gray-200 bg-white p-6 shadow-sm";
 const CHART_TITLE_CLASS = "mb-4 text-base font-semibold text-gray-900";
 const GRID_STROKE = "#e5e7eb";
-const TOP_N = 8;
+const TOP_N = 10;
 
 interface AuditsChartsProps {
   audits: AuditRecord[];
