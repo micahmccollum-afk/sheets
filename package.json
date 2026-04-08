@@ -1,9 +1,29 @@
 {
-  "name": "pog-audit-workspace",
+  "name": "pog-audit",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix pog-audit",
-    "build": "npm run build --prefix pog-audit",
-    "start": "npm run start --prefix pog-audit"
+    "dev": "next dev -p 3333",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "firebase-admin": "^12.0.0",
+    "next": "14.2.35",
+    "react": "^18",
+    "react-dom": "^18",
+    "recharts": "^3.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   }
 }
