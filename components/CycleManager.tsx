@@ -24,14 +24,17 @@ export default function CycleManager({
     if (!name.trim()) return;
     setSaving(true);
     try {
+      const payload: Record<string, unknown> = {
+        name: name.trim(),
+        isActive: true,
+      };
+      if (description.trim()) {
+        payload.description = description.trim();
+      }
       const res = await fetch("/api/audit-cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim() || undefined,
-          isActive: true,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

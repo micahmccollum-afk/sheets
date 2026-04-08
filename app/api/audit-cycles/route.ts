@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const cycle = await createAuditCycle({
       name: String(name).trim(),
-      description: description ? String(description).trim() : undefined,
+      ...(description && { description: String(description).trim() }),
       isActive: Boolean(isActive ?? true),
     });
 
