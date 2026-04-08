@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { AuditRecord } from "@/lib/types";
+import type { AuditRecord, AuditCycle } from "@/lib/types";
 import { SEVERITY_OPTIONS } from "@/lib/types";
 import ComboboxWithAdd from "./ComboboxWithAdd";
 import IssueTypeManager from "./IssueTypeManager";
@@ -15,6 +15,7 @@ interface AddEditFormProps {
   onSave: (savedRecord?: AuditRecord) => void;
   onCancel: () => void;
   auditCycleId?: string;
+  cycles?: AuditCycle[];
 }
 
 export default function AddEditForm({
@@ -26,8 +27,10 @@ export default function AddEditForm({
   onSave,
   onCancel,
   auditCycleId,
+  cycles = [],
 }: AddEditFormProps) {
   const [status, setStatus] = useState<boolean>(true); // true=Pass, false=Fail
+  const [selectedCycleId, setSelectedCycleId] = useState(auditCycleId ?? "");
   const [category, setCategory] = useState("");
   const [retailer, setRetailer] = useState("");
   const [pogLink, setPogLink] = useState("");
@@ -51,6 +54,7 @@ export default function AddEditForm({
       setSeverity(audit.severity ?? "");
       setIsHighOverlap(audit.isHighOverlap ?? false);
       setNotes(audit.notes ?? "");
+      setSelectedCycleId(audit.auditCycleId ?? "");
     } else {
       setStatus(true);
       setCategory("");
@@ -93,8 +97,8 @@ export default function AddEditForm({
       isHighOverlap,
       notes: isFail ? (notes ?? "").trim() : "",
     };
-    if (auditCycleId && !audit) {
-      payload.auditCycleId = auditCycleId;
+    if (selectedCycleId) {
+      payload.auditCycleId = selectedCycleId;
     }
 
     try {
@@ -154,6 +158,24 @@ export default function AddEditForm({
               </button>
             </div>
           </div>
+
+          {cycles.length > 0 && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Audit Cycle</label>
+              <select
+                value={selectedCycleId}
+                onChange={(e) => setSelectedCycleId(e.target.value)}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
+              >
+                <option value="">No Cycle</option>
+                {cycles.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}{c.isActive ? " (Active)" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>

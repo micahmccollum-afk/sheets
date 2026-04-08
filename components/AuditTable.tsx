@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import type { AuditRecord, AuditCycle } from "@/lib/types";
 import AddEditForm from "./AddEditForm";
+import BulkReassign from "./BulkReassign";
 import TrashIcon from "./TrashIcon";
 
 const PAGE_SIZE = 25;
@@ -66,6 +67,7 @@ export default function AuditTable({
   const [filterIssueType, setFilterIssueType] = useState("");
   const [searchNotes, setSearchNotes] = useState("");
   const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
+  const [showBulkReassign, setShowBulkReassign] = useState(false);
 
   useEffect(() => {
     fetch("/api/issue-types")
@@ -199,21 +201,29 @@ export default function AuditTable({
           Export CSV
         </button>
         {cycles.length > 0 && (
-          <select
-            value={selectedCycleId}
-            onChange={(e) => {
-              setSelectedCycleId(e.target.value);
-              setPage(1);
-            }}
-            className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"
-          >
-            <option value="">All Cycles</option>
-            {cycles.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}{c.isActive ? " (Active)" : ""}
-              </option>
-            ))}
-          </select>
+          <>
+            <select
+              value={selectedCycleId}
+              onChange={(e) => {
+                setSelectedCycleId(e.target.value);
+                setPage(1);
+              }}
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All Cycles</option>
+              {cycles.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}{c.isActive ? " (Active)" : ""}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => setShowBulkReassign(true)}
+              className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Bulk Reassign
+            </button>
+          </>
         )}
         <select
           value={filterStatus}
@@ -464,6 +474,7 @@ export default function AuditTable({
           issueTypes={issueTypes}
           onIssueTypesChange={setConfiguredIssueTypes}
           auditCycleId={selectedCycleId || undefined}
+          cycles={cycles}
           onSave={(savedRecord) => {
             if (savedRecord) {
               refresh();
@@ -478,6 +489,16 @@ export default function AuditTable({
           onCancel={() => {
             setShowForm(false);
             setEditing(null);
+          }}
+        />
+      )}
+
+      {showBulkReassign && (
+        <BulkReassign
+          cycles={cycles}
+          onClose={() => setShowBulkReassign(false)}
+          onComplete={async () => {
+            await refresh();
           }}
         />
       )}
