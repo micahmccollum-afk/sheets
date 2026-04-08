@@ -1,0 +1,9 @@
+{
+  "name": "pog-audit-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix pog-audit",
+    "build": "npm run build --prefix pog-audit",
+    "start": "npm run start --prefix pog-audit"
+  }
+}
