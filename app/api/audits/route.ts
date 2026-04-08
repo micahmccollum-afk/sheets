@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { getAllAudits, createAudit } from "@/lib/data";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const cycleId = searchParams.get("cycleId") ?? undefined;
-  const audits = await getAllAudits(cycleId);
-  return NextResponse.json(audits, {
-    headers: { "Cache-Control": "no-store" },
-  });
+  try {
+    const { searchParams } = new URL(request.url);
+    const cycleId = searchParams.get("cycleId") ?? undefined;
+    const audits = await getAllAudits(cycleId);
+    return NextResponse.json(audits, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to fetch audits";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

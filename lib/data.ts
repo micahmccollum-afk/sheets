@@ -24,18 +24,31 @@ export async function getAllAudits(cycleId?: string): Promise<AuditRecord[]> {
       auditCycleId: data.auditCycleId ?? undefined,
     }) as AuditRecord;
 
-  try {
-    if (isFirebaseConfigured()) {
+  const sortByCreatedAtDesc = (records: AuditRecord[]) =>
+    [...records].sort(
+      (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+    );
+
+  if (isFirebaseConfigured()) {
+    try {
       const db = getDb();
       let query: FirebaseFirestore.Query = db.collection(AUDITS_COLLECTION);
       if (cycleId) {
+        // Avoid where+orderBy index requirements; sort results in memory instead.
         query = query.where("auditCycleId", "==", cycleId);
+        const snapshot = await query.get();
+        return sortByCreatedAtDesc(
+          snapshot.docs.map((doc) => normalizeAudit(doc.id, doc.data()))
+        );
       }
+
       const snapshot = await query.orderBy("createdAt", "desc").get();
       return snapshot.docs.map((doc) => normalizeAudit(doc.id, doc.data()));
+    } catch (error) {
+      const context = cycleId ? `cycleId=${cycleId}` : "all cycles";
+      console.error(`Failed to load audits from Firebase (${context})`, error);
+      throw error instanceof Error ? error : new Error("Failed to load audits");
     }
-  } catch {
-    // Fall through to local file fallback.
   }
 
   try {
@@ -46,7 +59,7 @@ export async function getAllAudits(cycleId?: string): Promise<AuditRecord[]> {
     if (cycleId) {
       audits = audits.filter((a) => a.auditCycleId === cycleId);
     }
-    return audits;
+    return sortByCreatedAtDesc(audits);
   } catch {
     return [];
   }
