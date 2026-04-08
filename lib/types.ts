@@ -18,4 +18,33 @@ export interface AuditRecord {
   isHighOverlap: boolean;
   notes: string;
   createdAt: string;
+  auditCycleId?: string; // links to AuditCycle; undefined = legacy/unversioned
+}
+
+export interface AuditCycle {
+  id: string;
+  name: string; // e.g., "March 2026 Audit"
+  description?: string;
+  createdAt: string;
+  isActive: boolean; // only one cycle active at a time
+}
+
+export type ChangeStatus = "fixed" | "new_issue" | "persistent" | "unchanged";
+
+export interface ComparisonResult {
+  currentAudit?: AuditRecord;
+  previousAudit?: AuditRecord;
+  changeStatus: ChangeStatus;
+  matchKey: string; // "retailer|category" composite key
+}
+
+export interface KPIDelta {
+  label: string;
+  currentValue: number;
+  previousValue: number;
+  delta: number;
+  direction: "improvement" | "regression" | "neutral";
+  formattedCurrent: string;
+  formattedPrevious: string;
+  formattedDelta: string;
 }

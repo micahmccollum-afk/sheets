@@ -14,6 +14,7 @@ interface AddEditFormProps {
   onIssueTypesChange?: (types: string[]) => void;
   onSave: (savedRecord?: AuditRecord) => void;
   onCancel: () => void;
+  auditCycleId?: string;
 }
 
 export default function AddEditForm({
@@ -24,6 +25,7 @@ export default function AddEditForm({
   onIssueTypesChange,
   onSave,
   onCancel,
+  auditCycleId,
 }: AddEditFormProps) {
   const [status, setStatus] = useState<boolean>(true); // true=Pass, false=Fail
   const [category, setCategory] = useState("");
@@ -81,7 +83,7 @@ export default function AddEditForm({
       return;
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       category: category.trim(),
       retailer: retailer.trim(),
       pogLink: pogLink.trim(),
@@ -91,6 +93,9 @@ export default function AddEditForm({
       isHighOverlap,
       notes: isFail ? (notes ?? "").trim() : "",
     };
+    if (auditCycleId && !audit) {
+      payload.auditCycleId = auditCycleId;
+    }
 
     try {
       const res = audit

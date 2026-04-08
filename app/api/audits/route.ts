@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAllAudits, createAudit } from "@/lib/data";
 
-export async function GET() {
-  const audits = await getAllAudits();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const cycleId = searchParams.get("cycleId") ?? undefined;
+  const audits = await getAllAudits(cycleId);
   return NextResponse.json(audits, {
     headers: { "Cache-Control": "no-store" },
   });
@@ -11,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { category, retailer, pogLink, status, issueType, severity, isHighOverlap, notes } = body;
+    const { category, retailer, pogLink, status, issueType, severity, isHighOverlap, notes, auditCycleId } = body;
 
     if (
       category === undefined ||
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
       severity: isPass ? "" : String(severity).trim(),
       isHighOverlap: Boolean(isHighOverlap),
       notes: String(notes ?? "").trim(),
+      auditCycleId: auditCycleId ? String(auditCycleId).trim() : undefined,
     });
 
     return NextResponse.json(record);

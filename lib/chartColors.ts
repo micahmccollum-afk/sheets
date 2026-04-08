@@ -25,3 +25,19 @@ export const ISSUE_TYPE_PALETTE = [
 export function getIssueTypeColor(index: number): string {
   return ISSUE_TYPE_PALETTE[index % ISSUE_TYPE_PALETTE.length];
 }
+
+/** Comparison view colors */
+export const COMPARISON_COLORS = {
+  current: "#3b82f6",
+  previous: "#9ca3af",
+  improvement: "#22c55e",
+  regression: "#ef4444",
+  neutral: "#6b7280",
+} as const;
+
+export const CHANGE_STATUS_STYLES = {
+  fixed: { bg: "bg-green-100", text: "text-green-800", label: "Fixed" },
+  new_issue: { bg: "bg-red-100", text: "text-red-800", label: "New Issue" },
+  persistent: { bg: "bg-amber-100", text: "text-amber-800", label: "Persistent" },
+  unchanged: { bg: "bg-gray-100", text: "text-gray-700", label: "Unchanged" },
+} as const;

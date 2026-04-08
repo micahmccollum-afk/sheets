@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import type { AuditRecord } from "@/lib/types";
+import type { AuditRecord, AuditCycle } from "@/lib/types";
 import AddEditForm from "./AddEditForm";
 import TrashIcon from "./TrashIcon";
 
@@ -42,8 +42,18 @@ function exportToCsv(audits: AuditRecord[]) {
   URL.revokeObjectURL(url);
 }
 
-export default function AuditTable({ audits: initialAudits }: { audits: AuditRecord[] }) {
+export default function AuditTable({
+  audits: initialAudits,
+  cycles: initialCycles = [],
+  activeCycleId: initialActiveCycleId,
+}: {
+  audits: AuditRecord[];
+  cycles?: AuditCycle[];
+  activeCycleId?: string;
+}) {
   const [audits, setAudits] = useState(initialAudits);
+  const [cycles] = useState(initialCycles);
+  const [selectedCycleId, setSelectedCycleId] = useState(initialActiveCycleId ?? "");
   const [configuredIssueTypes, setConfiguredIssueTypes] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AuditRecord | null>(null);
@@ -66,7 +76,10 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
 
   const refresh = async () => {
     try {
-      const res = await fetch("/api/audits");
+      const url = selectedCycleId
+        ? `/api/audits?cycleId=${selectedCycleId}`
+        : "/api/audits";
+      const res = await fetch(url);
       const data = await res.json();
       if (!res.ok || !Array.isArray(data)) {
         console.error("Audits API error:", data);
@@ -77,6 +90,14 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
       console.error("Failed to refresh audits:", err);
     }
   };
+
+  // Refetch when cycle changes
+  useEffect(() => {
+    if (cycles.length > 0) {
+      refresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCycleId]);
 
   const categories = useMemo(
     () => Array.from(new Set(audits.map((a) => a.category).filter(Boolean))).sort(),
@@ -177,6 +198,23 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
         >
           Export CSV
         </button>
+        {cycles.length > 0 && (
+          <select
+            value={selectedCycleId}
+            onChange={(e) => {
+              setSelectedCycleId(e.target.value);
+              setPage(1);
+            }}
+            className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"
+          >
+            <option value="">All Cycles</option>
+            {cycles.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}{c.isActive ? " (Active)" : ""}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           value={filterStatus}
           onChange={(e) => {
@@ -425,6 +463,7 @@ export default function AuditTable({ audits: initialAudits }: { audits: AuditRec
           retailers={retailers}
           issueTypes={issueTypes}
           onIssueTypesChange={setConfiguredIssueTypes}
+          auditCycleId={selectedCycleId || undefined}
           onSave={(savedRecord) => {
             if (savedRecord) {
               refresh();

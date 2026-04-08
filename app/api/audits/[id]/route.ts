@@ -10,6 +10,7 @@ const EDITABLE_FIELDS = [
   "severity",
   "isHighOverlap",
   "notes",
+  "auditCycleId",
 ] as const;
 
 export async function PATCH(
@@ -24,6 +25,8 @@ export async function PATCH(
       if (body[key] === undefined) continue;
       if (key === "status" || key === "isHighOverlap") {
         updates[key] = Boolean(body[key]);
+      } else if (key === "auditCycleId") {
+        updates[key] = body[key] ? String(body[key]).trim() : "";
       } else {
         updates[key] = String(body[key]).trim();
       }
