@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { AuditRecord, AuditCycle } from "@/lib/types";
 import {
   matchAudits,
@@ -20,6 +20,7 @@ import TrendChart from "./TrendChart";
 import ExportButton from "./ExportButton";
 import RefreshButton from "./RefreshButton";
 import CycleManager from "./CycleManager";
+import AnalyticsFilters from "./AnalyticsFilters";
 
 const TABS = [
   { id: "current", label: "Current Audit" },
@@ -50,8 +51,61 @@ export default function PresentationPageClient({
   const [previousAudits, setPreviousAudits] = useState<AuditRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCycleManager, setShowCycleManager] = useState(false);
+  const [clubFilter, setClubFilter] = useState("");
+  const [retailerFilter, setRetailerFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   const hasCycles = cycles.length > 0;
+
+  const applyFilters = useCallback(
+    (list: AuditRecord[]) =>
+      list.filter((a) => {
+        if (clubFilter) {
+          const v = (a.clubType ?? "").trim();
+          if (clubFilter === "Unspecified" ? v !== "" : v !== clubFilter) return false;
+        }
+        if (retailerFilter && (a.retailer ?? "").trim() !== retailerFilter) return false;
+        if (categoryFilter && (a.category ?? "").trim() !== categoryFilter) return false;
+        return true;
+      }),
+    [clubFilter, retailerFilter, categoryFilter]
+  );
+
+  const filteredInitial = useMemo(() => applyFilters(initialAudits), [applyFilters, initialAudits]);
+
+  const retailerOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...currentAudits, ...previousAudits, ...initialAudits]
+            .map((a) => (a.retailer ?? "").trim())
+            .filter(Boolean)
+        )
+      ).sort(),
+    [currentAudits, previousAudits, initialAudits]
+  );
+
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...currentAudits, ...previousAudits, ...initialAudits]
+            .map((a) => (a.category ?? "").trim())
+            .filter(Boolean)
+        )
+      ).sort(),
+    [currentAudits, previousAudits, initialAudits]
+  );
+
+  const handleFilterChange = (next: {
+    clubFilter?: string;
+    retailerFilter?: string;
+    categoryFilter?: string;
+  }) => {
+    if (next.clubFilter !== undefined) setClubFilter(next.clubFilter);
+    if (next.retailerFilter !== undefined) setRetailerFilter(next.retailerFilter);
+    if (next.categoryFilter !== undefined) setCategoryFilter(next.categoryFilter);
+  };
 
   const fetchAudits = useCallback(async (cycleId: string): Promise<AuditRecord[]> => {
     const res = await fetch(`/api/audits?cycleId=${cycleId}`);
@@ -105,15 +159,23 @@ export default function PresentationPageClient({
               Create Audit Cycle
             </button>
             <RefreshButton />
-            <ExportButton audits={initialAudits} />
+            <ExportButton audits={filteredInitial} />
           </div>
         </div>
-        <SummaryCards audits={initialAudits} />
+        <AnalyticsFilters
+          clubFilter={clubFilter}
+          retailerFilter={retailerFilter}
+          categoryFilter={categoryFilter}
+          retailers={retailerOptions}
+          categories={categoryOptions}
+          onChange={handleFilterChange}
+        />
+        <SummaryCards audits={filteredInitial} />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
-          <IssueCharts audits={initialAudits} />
-          <AuditsCharts audits={initialAudits} />
+          <IssueCharts audits={filteredInitial} />
+          <AuditsCharts audits={filteredInitial} />
         </div>
-        <PresentationTable audits={initialAudits} />
+        <PresentationTable audits={filteredInitial} />
         {showCycleManager && (
           <CycleManager
             cycles={cycles}
@@ -128,12 +190,15 @@ export default function PresentationPageClient({
     );
   }
 
-  // Compute comparison data
-  const comparisonResults = matchAudits(currentAudits, previousAudits);
-  const kpiDeltas = computeKPIDeltas(currentAudits, previousAudits);
-  const chartComparisons = computeChartComparisons(currentAudits, previousAudits);
+  const filteredCurrent = applyFilters(currentAudits);
+  const filteredPrevious = applyFilters(previousAudits);
 
-  const displayAudits = activeTab === "previous" ? previousAudits : currentAudits;
+  // Compute comparison data
+  const comparisonResults = matchAudits(filteredCurrent, filteredPrevious);
+  const kpiDeltas = computeKPIDeltas(filteredCurrent, filteredPrevious);
+  const chartComparisons = computeChartComparisons(filteredCurrent, filteredPrevious);
+
+  const displayAudits = activeTab === "previous" ? filteredPrevious : filteredCurrent;
 
   const currentCycleName =
     cycles.find((c) => c.id === currentCycleId)?.name ?? "Current";
@@ -181,6 +246,16 @@ export default function PresentationPageClient({
           />
         )}
       </div>
+
+      {/* Filters */}
+      <AnalyticsFilters
+        clubFilter={clubFilter}
+        retailerFilter={retailerFilter}
+        categoryFilter={categoryFilter}
+        retailers={retailerOptions}
+        categories={categoryOptions}
+        onChange={handleFilterChange}
+      />
 
       {/* Tabs */}
       <TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />

@@ -133,11 +133,11 @@ export default function AddEditForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-lg bg-white shadow-xl">
+        <h2 className="border-b border-gray-200 px-6 py-4 text-lg font-semibold text-gray-900">
           {isEditing ? "Edit Entry" : "Add Entry"}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col"><div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {/* Status Toggle */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Status</label>
@@ -327,7 +327,8 @@ export default function AddEditForm({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          </div>
+          <div className="flex justify-end gap-2 border-t border-gray-200 px-6 py-4">
             <button
               type="button"
               onClick={onCancel}

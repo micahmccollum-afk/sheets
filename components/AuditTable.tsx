@@ -317,6 +317,9 @@ export default function AuditTable({
                 Retailer {sortKey === "retailer" && (sortDir === "asc" ? "↑" : "↓")}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                Club / Non-Club
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                 POG Link
               </th>
               <th
@@ -345,7 +348,7 @@ export default function AuditTable({
           <tbody className="divide-y divide-gray-200 bg-white">
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
                   No audits yet. Click &quot;Add Entry&quot; to get started.
                 </td>
               </tr>
@@ -363,6 +366,9 @@ export default function AuditTable({
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{a.category}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{a.retailer}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                    {a.clubType || "—"}
+                  </td>
                   <td className="px-4 py-3 text-sm">
                     <a
                       href={a.pogLink}
