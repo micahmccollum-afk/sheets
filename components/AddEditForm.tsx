@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { AuditRecord, AuditCycle } from "@/lib/types";
-import { SEVERITY_OPTIONS } from "@/lib/types";
+import { SEVERITY_OPTIONS, CLUB_TYPE_OPTIONS } from "@/lib/types";
 import ComboboxWithAdd from "./ComboboxWithAdd";
 import IssueTypeManager from "./IssueTypeManager";
 
@@ -38,6 +38,7 @@ export default function AddEditForm({
   const [severity, setSeverity] = useState("");
   const [isHighOverlap, setIsHighOverlap] = useState(false);
   const [notes, setNotes] = useState("");
+  const [clubType, setClubType] = useState<string>("");
   const [showIssueTypeManager, setShowIssueTypeManager] = useState(false);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -55,6 +56,7 @@ export default function AddEditForm({
       setIsHighOverlap(audit.isHighOverlap ?? false);
       setNotes(audit.notes ?? "");
       setSelectedCycleId(audit.auditCycleId ?? "");
+      setClubType(audit.clubType ?? "");
     } else {
       setStatus(true);
       setCategory("");
@@ -64,6 +66,7 @@ export default function AddEditForm({
       setSeverity("Medium");
       setIsHighOverlap(false);
       setNotes("");
+      setClubType("");
     }
   }, [audit, issueTypes]);
 
@@ -96,6 +99,7 @@ export default function AddEditForm({
       severity: isFail ? severity.trim() : undefined,
       isHighOverlap,
       notes: isFail ? (notes ?? "").trim() : "",
+      clubType,
     };
     if (selectedCycleId) {
       payload.auditCycleId = selectedCycleId;
@@ -215,6 +219,22 @@ export default function AddEditForm({
               placeholder="https://..."
               required
             />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Club / Non-Club</label>
+            <select
+              value={clubType}
+              onChange={(e) => setClubType(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-storesight-purple focus:outline-none focus:ring-1 focus:ring-storesight-purple"
+            >
+              <option value="">— Select —</option>
+              {CLUB_TYPE_OPTIONS.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
 
           {isFail && (

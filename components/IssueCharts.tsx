@@ -48,6 +48,30 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
     .sort((a, b) => b.rate - a.rate)
     .slice(0, TOP_N);
 
+  const byClubRaw = audits.reduce<
+    Record<string, { total: number; fail: number }>
+  >((acc, a) => {
+    const key = (a.clubType ?? "").trim() || "Unspecified";
+    if (!acc[key]) acc[key] = { total: 0, fail: 0 };
+    acc[key].total += 1;
+    if (!(a.status ?? false)) acc[key].fail += 1;
+    return acc;
+  }, {});
+
+  const clubOrder = ["Club", "Non-Club", "Unspecified"];
+  const errorRateByClub = clubOrder
+    .filter((name) => byClubRaw[name])
+    .map((name) => {
+      const { total, fail } = byClubRaw[name];
+      return {
+        name,
+        rate: total > 0 ? Math.round((fail / total) * 1000) / 10 : 0,
+        total,
+        fail,
+        labelText: total > 0 ? `${((fail / total) * 100).toFixed(1)}%` : "0%",
+      };
+    });
+
   const byIssueType = Object.entries(
     failAudits.reduce<Record<string, number>>((acc, a) => {
       const t = (a.issueType ?? "").trim();
@@ -102,6 +126,49 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
                 />
                 <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                   {errorRateByCategory.map((entry) => (
+                    <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
+                  ))}
+                  <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      <div className={CARD_CLASS}>
+        <h3 className={CHART_TITLE_CLASS}>Error Rate by Club / Non-Club</h3>
+        <div className="h-64">
+          {errorRateByClub.length === 0 ? (
+            <div className="flex h-full items-center justify-center text-gray-500 text-sm">
+              No club data to display.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={errorRateByClub}
+                layout="vertical"
+                margin={{ left: 88, right: 48 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={true} vertical={false} />
+                <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const p = payload[0].payload;
+                    return (
+                      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                        <p className="font-medium text-gray-900">{label}</p>
+                        <p className="text-sm text-gray-600">
+                          Error rate: {p.rate}% ({p.fail} / {p.total})
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
+                  {errorRateByClub.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
                   ))}
                   <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />

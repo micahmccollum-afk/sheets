@@ -11,6 +11,7 @@ const EDITABLE_FIELDS = [
   "isHighOverlap",
   "notes",
   "auditCycleId",
+  "clubType",
 ] as const;
 
 export async function PATCH(
