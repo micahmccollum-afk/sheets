@@ -18,6 +18,17 @@ const CARD_CLASS =
 const CHART_TITLE_CLASS = "mb-4 text-base font-semibold text-gray-900";
 const GRID_STROKE = "#e5e7eb";
 const TOP_N = 10;
+const ROW_HEIGHT = 32;
+const CHART_PADDING = 64;
+const MIN_CHART_HEIGHT = 288;
+const Y_AXIS_WIDTH = 140;
+const MAX_LABEL_CHARS = 18;
+
+const truncateLabel = (value: string) =>
+  value.length > MAX_LABEL_CHARS ? `${value.slice(0, MAX_LABEL_CHARS - 1)}…` : value;
+
+const chartHeight = (rowCount: number) =>
+  Math.max(MIN_CHART_HEIGHT, rowCount * ROW_HEIGHT + CHART_PADDING);
 
 interface AuditsChartsProps {
   audits: AuditRecord[];
@@ -32,8 +43,7 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
     }, {})
   )
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, TOP_N);
+    .sort((a, b) => b.count - a.count);
 
   const retailerMap = audits.reduce<Record<string, { total: number; displayName: string }>>((acc, a) => {
     const raw = (a.retailer || "Unspecified").trim() || "Unspecified";
@@ -88,16 +98,16 @@ export default function AuditsCharts({ audits }: AuditsChartsProps) {
 
       <div className={CARD_CLASS}>
         <h3 className={CHART_TITLE_CLASS}>Audits by Category</h3>
-        <div className="h-72">
+        <div style={{ height: chartHeight(byCategory.length) }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={byCategory}
               layout="vertical"
-              margin={{ left: 88, right: 48 }}
+              margin={{ left: 16, right: 48 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={true} vertical={false} />
               <XAxis type="number" tick={{ fontSize: 12 }} />
-              <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" width={Y_AXIS_WIDTH} tick={{ fontSize: 12 }} tickFormatter={truncateLabel} interval={0} />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;

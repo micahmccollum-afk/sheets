@@ -19,6 +19,17 @@ const CARD_CLASS =
 const CHART_TITLE_CLASS = "mb-4 text-base font-semibold text-gray-900";
 const GRID_STROKE = "#e5e7eb";
 const TOP_N = 10;
+const ROW_HEIGHT = 32;
+const CHART_PADDING = 64;
+const MIN_CHART_HEIGHT = 288;
+const Y_AXIS_WIDTH = 140;
+const MAX_LABEL_CHARS = 18;
+
+const truncateLabel = (value: string) =>
+  value.length > MAX_LABEL_CHARS ? `${value.slice(0, MAX_LABEL_CHARS - 1)}…` : value;
+
+const chartHeight = (rowCount: number) =>
+  Math.max(MIN_CHART_HEIGHT, rowCount * ROW_HEIGHT + CHART_PADDING);
 
 interface IssueChartsProps {
   audits: AuditRecord[];
@@ -45,8 +56,7 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
       fail,
       labelText: total > 0 ? `${((fail / total) * 100).toFixed(1)}%` : "0%",
     }))
-    .sort((a, b) => b.rate - a.rate)
-    .slice(0, TOP_N);
+    .sort((a, b) => b.rate - a.rate);
 
   const byClubRaw = audits.reduce<
     Record<string, { total: number; fail: number }>
@@ -94,49 +104,6 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className={CARD_CLASS}>
-        <h3 className={CHART_TITLE_CLASS}>Error Rate by Category</h3>
-        <div className="h-72">
-          {errorRateByCategory.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-gray-500 text-sm">
-              No category data to display.
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={errorRateByCategory}
-                layout="vertical"
-                margin={{ left: 88, right: 48 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={true} vertical={false} />
-                <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 12 }} />
-                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (!active || !payload?.length) return null;
-                    const p = payload[0].payload;
-                    return (
-                      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-                        <p className="font-medium text-gray-900">{label}</p>
-                        <p className="text-sm text-gray-600">
-                          Error rate: {p.rate}% ({p.fail} / {p.total})
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
-                  {errorRateByCategory.map((entry) => (
-                    <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
-                  ))}
-                  <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      <div className={CARD_CLASS}>
         <h3 className={CHART_TITLE_CLASS}>Error Rate by Club / Non-Club</h3>
         <div className="h-64">
           {errorRateByClub.length === 0 ? (
@@ -169,6 +136,49 @@ export default function IssueCharts({ audits }: IssueChartsProps) {
                 />
                 <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                   {errorRateByClub.map((entry) => (
+                    <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
+                  ))}
+                  <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      <div className={CARD_CLASS}>
+        <h3 className={CHART_TITLE_CLASS}>Error Rate by Category</h3>
+        <div style={{ height: chartHeight(errorRateByCategory.length) }}>
+          {errorRateByCategory.length === 0 ? (
+            <div className="flex h-full items-center justify-center text-gray-500 text-sm">
+              No category data to display.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={errorRateByCategory}
+                layout="vertical"
+                margin={{ left: 16, right: 48 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={true} vertical={false} />
+                <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={Y_AXIS_WIDTH} tick={{ fontSize: 12 }} tickFormatter={truncateLabel} interval={0} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const p = payload[0].payload;
+                    return (
+                      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                        <p className="font-medium text-gray-900">{label}</p>
+                        <p className="text-sm text-gray-600">
+                          Error rate: {p.rate}% ({p.fail} / {p.total})
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
+                  {errorRateByCategory.map((entry) => (
                     <Cell key={entry.name} fill={getErrorRateColor(entry.rate)} />
                   ))}
                   <LabelList dataKey="labelText" position="right" className="text-xs fill-gray-700" />
