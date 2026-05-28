@@ -10,7 +10,6 @@ const EDITABLE_FIELDS = [
   "severity",
   "notes",
   "auditCycleId",
-  "clubType",
 ] as const;
 
 export async function PATCH(

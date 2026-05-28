@@ -7,9 +7,6 @@ export const DEFAULT_ISSUE_TYPES = [
 
 export const SEVERITY_OPTIONS = ["Low", "Medium", "High"] as const;
 
-export const CLUB_TYPE_OPTIONS = ["Club", "Non-Club"] as const;
-export type ClubType = (typeof CLUB_TYPE_OPTIONS)[number];
-
 export interface AuditRecord {
   id: string;
   category: string;
@@ -21,7 +18,6 @@ export interface AuditRecord {
   notes: string;
   createdAt: string;
   auditCycleId?: string; // links to AuditCycle; undefined = legacy/unversioned
-  clubType?: ClubType | "";
 }
 
 export interface AuditCycle {

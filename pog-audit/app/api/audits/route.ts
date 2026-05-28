@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { category, retailer, pogLink, status, issueType, severity, notes, auditCycleId, clubType } = body;
+    const { category, retailer, pogLink, status, issueType, severity, notes, auditCycleId } = body;
 
     if (
       category === undefined ||
@@ -58,7 +58,6 @@ export async function POST(request: Request) {
       severity: isPass ? "" : String(severity).trim(),
       notes: String(notes ?? "").trim(),
       auditCycleId: auditCycleId ? String(auditCycleId).trim() : undefined,
-      clubType: clubType === "Club" || clubType === "Non-Club" ? clubType : "",
     });
 
     return NextResponse.json(record);
